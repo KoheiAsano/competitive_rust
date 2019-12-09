@@ -1,8 +1,30 @@
+fn palindrome(s: String, n: usize, alp: &[u8]) {
+    println!("{}", s);
+    if s.len() == 0 {
+        for letter in alp {
+            palindrome(char::from(*letter).to_string(), n - 1, alp);
+        }
+    }
+    if n > 1 {
+        for letter in alp {
+            palindrome(
+                format!("{}{}{}", *letter as char, s, *letter as char).to_string(),
+                n - 2,
+                alp,
+            );
+        }
+    }
+}
+
 fn main() {
-    let n: usize = read();
-    let s: String = read();
-    println!("{}", n);
-    println!("{} length:{}", s, s.len());
+    // matrix input
+    // let nm: Vec<usize> = read_vec();
+    // let mut map: Vec<Vec<usize>> = vec![vec![]; nm[0]];
+    // for i in 0..nm[0] {
+    //     map[i] = read_vec();
+    // }
+    // println!("{:?}", map);
+    // palindrome("".to_string(), 8, "abcd".as_bytes());
 }
 
 #[allow(dead_code)]
