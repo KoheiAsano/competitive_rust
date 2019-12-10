@@ -1,3 +1,4 @@
+const MOD: usize = 1000000007;
 fn palindrome(s: String, n: usize, alp: &[u8]) {
     println!("{}", s);
     if s.len() == 0 {
