@@ -1,3 +1,5 @@
+// ============
+
 struct SegTree {
     // size: 葉の数, velue: ノードの値, neutral: 単位元, calc: 計算関数(isize, isize) -> isize
     num: usize,
@@ -44,7 +46,7 @@ impl SegTree {
         }
     }
 }
-
+// ============
 fn main() {
 }
 

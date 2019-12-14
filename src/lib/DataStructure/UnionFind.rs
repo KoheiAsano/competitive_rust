@@ -3,6 +3,7 @@
 サイズはVecにしちゃっている
 */
 
+// ============
 #[derive(Debug)]
 struct UnionFind {
     // size= 親ならサイズ,その他は未定義. table=親を指す
@@ -48,6 +49,8 @@ impl UnionFind {
         self.size[ri]
     }
 }
+
+// ============
 
 #[cfg(test)]
 mod tests {

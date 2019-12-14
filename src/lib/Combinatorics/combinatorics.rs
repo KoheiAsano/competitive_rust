@@ -6,6 +6,7 @@ let c = Comb::fact_new();
 //定数内でループが書けないので困った
 //一旦その周りを構造体にしてしまおう
 
+// ==============
 const MAXN: usize = 10010;
 const MOD: usize = 1000000007;
 
@@ -69,7 +70,7 @@ impl Comb {
         }
     }
 }
-
+// ==============
 
 #[cfg(test)]
 mod tests {
