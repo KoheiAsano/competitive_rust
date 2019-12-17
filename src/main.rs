@@ -1,5 +1,8 @@
 // =========
-use std::cmp::max;
+use std::cmp::{max, min};
+use std::collections::HashSet;
+use std::process::exit;
+
 const MOD: usize = 1000000007;
 
 macro_rules! input {
@@ -53,10 +56,20 @@ macro_rules! read_value {
 }
 // =========
 
+fn gcd(a: usize, b: usize) -> usize {
+    if b == 0 {
+        return a;
+    } else if a < b {
+        return gcd(a, b % a);
+    } else {
+        return gcd(b, a % b);
+    }
+}
+
 fn main() {
     input! {
         n: usize,
-        w: usize,
-        wv: [(usize, usize);n]
+        a: [isize;n],
+        b: [isize;n],
     }
 }
