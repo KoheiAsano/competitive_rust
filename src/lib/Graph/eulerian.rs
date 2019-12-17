@@ -3,7 +3,7 @@
 // - 多重辺は認めない
 
 // ===========
-fn directed_hierholder(adjl: &mut Vec<Vec<usize>>, start: usize) -> Option<Vec<usize>> {
+fn isEulerian(adjl: &Vec<Vec<usize>>, start: usize) -> bool {
     // 全ての(入次数-出次数)=0 一周か
     // か始点-1と終点+1じゃないなら無理の判定
     let mut deg: Vec<isize> = vec![0; adjl.len()];
@@ -21,6 +21,14 @@ fn directed_hierholder(adjl: &mut Vec<Vec<usize>>, start: usize) -> Option<Vec<u
     }
     // 閉路だけほしいときは後半のorをなくす
     if !(adjl.len() - deg0num == 0 || (adjl.len() - deg0num == 2 && deg[start] == -1)) {
+        false
+    } else {
+        true
+    }
+}
+
+fn directed_hierholder(adjl: &mut Vec<Vec<usize>>, start: usize) -> Option<Vec<usize>> {
+    if !isEulerian(&adjl, start) {
         return None;
     }
     // ここまで判定
@@ -70,7 +78,7 @@ fn undirected_hierholder(adjl: &mut Vec<Vec<usize>>, start: usize) -> Option<Vec
 
     //２つのStack(結果のはほぼベクター)
     // res_circuitに確定したvertexを追加する
-    let mut res_circuit: Vec<usize> = vec![];
+    let mut res_cycle: Vec<usize> = vec![];
     // これは一旦訪れたものを入れておくStack
     let mut trail_stack: Vec<usize> = vec![];
     trail_stack.push(start);
@@ -91,13 +99,13 @@ fn undirected_hierholder(adjl: &mut Vec<Vec<usize>>, start: usize) -> Option<Vec
             }
             cur_v = next_v;
         } else {
-            res_circuit.push(cur_v);
+            res_cycle.push(cur_v);
             cur_v = trail_stack.pop().unwrap();
         }
     }
     // 有向なのでひっくりかえす
-    res_circuit.reverse();
-    Some(res_circuit)
+    res_cycle.reverse();
+    Some(res_cycle)
 }
 // ===========
 mod tests {
