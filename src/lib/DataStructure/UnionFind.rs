@@ -28,7 +28,8 @@ impl UnionFind {
         if self.table[x] == x {
             x
         } else {
-            self.table[x] = self.root(self.table[x]);
+            let tmp = self.table[x];
+            self.table[x] = self.root(tmp);
             self.table[x]
         }
     }
@@ -68,6 +69,7 @@ mod tests {
         }
         // つなぐ
         uf.union(0, 1);
+        uf.union(0, 0);
         uf.union(1, 2);
         uf.union(2, 9);
 
