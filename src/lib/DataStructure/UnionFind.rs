@@ -39,6 +39,9 @@ impl UnionFind {
     fn union(&mut self, a: usize, b: usize) -> () {
         let a_root = self.root(a);
         let b_root = self.root(b);
+        if a_root == b_root {
+            return ();
+        }
         // ここは工夫していない思考停止でbにマージ
         self.table[a_root] = b_root;
         self.size[b_root] += self.size[a_root];
