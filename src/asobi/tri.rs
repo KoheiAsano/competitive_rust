@@ -1,73 +1,58 @@
-// =========
-use std::cmp::{max, min};
-use std::collections::{HashMap, HashSet};
-use std::process::exit;
 
-const MOD: usize = 1000000007;
-
-macro_rules! input {
-    (source = $s:expr, $($r:tt)*) => {
-        let mut iter = $s.split_whitespace();
-        input_inner!{iter, $($r)*}
-    };
-    ($($r:tt)*) => {
-        let s = {
-            use std::io::Read;
-            let mut s = String::new();
-            std::io::stdin().read_to_string(&mut s).unwrap();
-            s
-        };
-        let mut iter = s.split_whitespace();
-        input_inner!{iter, $($r)*}
-    };
+fn norm(p: (f64, f64)) -> f64 {
+    (p.0.powf(2.0) + p.1.powf(2.0)).sqrt()
 }
 
-macro_rules! input_inner {
-    ($iter:expr) => {};
-    ($iter:expr, ) => {};
-    // var... 変数の識別子, $t...型を一つよむ
-    ($iter:expr, $var:ident : $t:tt $($r:tt)*) => {
-        let $var = read_value!($iter, $t);
-        //ここで繰り返し
-        input_inner!{$iter $($r)*}
-    };
-}
+fn sin(rad: f64) -> f64 {
+    // 定数の宣言
 
-macro_rules! read_value {
-    ($iter:expr, ( $($t:tt),* )) => {
-        ( $(read_value!($iter, $t)),* )
-    };
-    //
-    ($iter:expr, [ $t:tt ; $len:expr ]) => {
-        (0..$len).map(|_| read_value!($iter, $t)).collect::<Vec<_>>()
-    };
-
-    ($iter:expr, chars) => {
-        read_value!($iter, String).chars().collect::<Vec<char>>()
-    };
-
-    ($iter:expr, usize1) => {
-        read_value!($iter, usize) - 1
-    };
-    // 配列の最後のNestではここで型が指定されてparseされる
-    ($iter:expr, $t:ty) => {
-        $iter.next().unwrap().parse::<$t>().expect("Parse error")
-    };
-}
-// =========
-
-fn cos(s: f64) {
-    let eps = 1e-9;
+    use std::f64::consts::PI;
+    // 角度の誤差
+    let eps = 1e-18;
+    let mut left = (0.0, 1.0);
+    let mut left_a = PI / 2.0;
+    let mut right = (1.0, 0.0);
+    let mut right_a = 0.0;
     // 符号の計算
-    // 値を二分探索
-    // 45
-    let mut res = (1.0 / 2f64.sqrt(), 1.0 / 2f64.sqrt());
-    let angle = 45;
-}
+    // 正にする
+    let mut rad = rad % (2.0 * PI);
+    if rad < 0.0 {
+        rad += 2.0 * PI;
+    }
 
-fn main() {
-    // +-abs(divisor)にまとまる
-    println!("{:?}", 3.0 % 3.14);
-    println!("{:?}", -4.0 % 3.14);
-    println!("{:?}", 6.0 % 3.14);
+    let sign: f64 = if rad.abs() > PI { -1.0 } else { 1.0 };
+    // 正の角度に
+    // 第一象限にする
+    if PI / 2.0 > rad {
+        rad = rad;
+    } else if PI > rad {
+        rad = PI - rad;
+    } else if 3.0 * PI / 2.0 >= rad {
+        rad = rad - PI;
+    } else {
+        rad = 2.0 * PI - rad;
+    }
+    // 値を二分探索
+    // 正規化をする
+    let mut val: (f64, f64) = (
+        (left.0 + right.0) / 2.0f64.sqrt(),
+        (left.1 + right.1) / 2.0f64.sqrt(),
+    );
+
+    let mut angle = (left_a + right_a) / 2.0;
+    let mut n: f64;
+    while (rad - angle).abs() > eps {
+        if rad > angle {
+            right = val;
+            right_a = angle;
+        } else {
+            left = val;
+            left_a = angle;
+        }
+        val = ((left.0 + right.0), (left.1 + right.1));
+        n = norm(val);
+        val = (val.0 / n, val.1 / n);
+        angle = (left_a + right_a) / 2.0;
+    }
+    sign * val.1
 }
