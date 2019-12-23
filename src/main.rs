@@ -57,3 +57,10 @@ macro_rules! read_value {
 // =========
 
 fn main() {}
+
+mod tests {
+    use super::*;
+    #[test]
+    fn check() {}
+
+}
