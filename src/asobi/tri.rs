@@ -4,24 +4,15 @@ fn norm(p: (f64, f64)) -> f64 {
 }
 
 fn sin(rad: f64) -> f64 {
-    // 定数の宣言
-
     use std::f64::consts::PI;
-    // 角度の誤差
-    let eps = 1e-18;
-    let mut left = (0.0, 1.0);
-    let mut left_a = PI / 2.0;
-    let mut right = (1.0, 0.0);
-    let mut right_a = 0.0;
-    // 符号の計算
-    // 正にする
+    let eps = 1e-9;
+
+    // 2pi mod
     let mut rad = rad % (2.0 * PI);
     if rad < 0.0 {
         rad += 2.0 * PI;
     }
-
     let sign: f64 = if rad.abs() > PI { -1.0 } else { 1.0 };
-    // 正の角度に
     // 第一象限にする
     if PI / 2.0 > rad {
         rad = rad;
@@ -33,12 +24,14 @@ fn sin(rad: f64) -> f64 {
         rad = 2.0 * PI - rad;
     }
     // 値を二分探索
-    // 正規化をする
+    let mut left = (0.0, 1.0);
+    let mut left_a = PI / 2.0;
+    let mut right = (1.0, 0.0);
+    let mut right_a = 0.0;
     let mut val: (f64, f64) = (
         (left.0 + right.0) / 2.0f64.sqrt(),
         (left.1 + right.1) / 2.0f64.sqrt(),
     );
-
     let mut angle = (left_a + right_a) / 2.0;
     let mut n: f64;
     while (rad - angle).abs() > eps {
@@ -55,4 +48,18 @@ fn sin(rad: f64) -> f64 {
         angle = (left_a + right_a) / 2.0;
     }
     sign * val.1
+}
+
+mod tests {
+    use super::*;
+    #[test]
+    fn check() {
+        let eps = 1e-9;
+        assert!((sin(0.0) - 0.0f64.sin()).abs() < eps);
+        assert!((sin(1.0) - 1.0f64.sin()).abs() < eps);
+        assert!((sin(6.0) - 6.0f64.sin()).abs() < eps);
+        assert!((sin(-1.0) - -1.0f64.sin()).abs() < eps);
+        assert!((sin(-12.0) - -12.0f64.sin()).abs() < eps);
+    }
+
 }
