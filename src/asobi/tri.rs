@@ -1,4 +1,3 @@
-
 fn norm(p: (f64, f64)) -> f64 {
     (p.0.powf(2.0) + p.1.powf(2.0)).sqrt()
 }
@@ -32,20 +31,20 @@ fn sin(rad: f64) -> f64 {
         (left.0 + right.0) / 2.0f64.sqrt(),
         (left.1 + right.1) / 2.0f64.sqrt(),
     );
-    let mut angle = (left_a + right_a) / 2.0;
+    let mut val_rad = (left_a + right_a) / 2.0;
     let mut n: f64;
-    while (rad - angle).abs() > eps {
-        if rad > angle {
+    while (rad - val_rad).abs() > eps {
+        if rad > val_rad {
             right = val;
-            right_a = angle;
+            right_a = val_rad;
         } else {
             left = val;
-            left_a = angle;
+            left_a = val_rad;
         }
         val = ((left.0 + right.0), (left.1 + right.1));
         n = norm(val);
         val = (val.0 / n, val.1 / n);
-        angle = (left_a + right_a) / 2.0;
+        val_rad = (left_a + right_a) / 2.0;
     }
     sign * val.1
 }
