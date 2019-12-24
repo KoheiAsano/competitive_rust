@@ -59,6 +59,7 @@ mod tests {
         assert!((sin(6.0) - 6.0f64.sin()).abs() < eps);
         assert!((sin(-1.0) - -1.0f64.sin()).abs() < eps);
         assert!((sin(-12.0) - -12.0f64.sin()).abs() < eps);
+        assert!((sin(-std::f64::MAX) - -std::f64::MAX.sin()).abs() < eps);
     }
 
 }
