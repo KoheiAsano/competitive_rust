@@ -1,6 +1,6 @@
 // ============
 struct SegTree<T> {
-    // num: 葉の数, data: ノードの値, neutral: 単位元, operation: 区間クエリ, update: 点更新
+    // num: 葉(元データ)の数, data: ノードの値, neutral: 単位元, operation: 区間クエリ, update: 点更新
     num: usize,
     data: Vec<T>,
     neutral: T,
