@@ -70,7 +70,7 @@ mod tests {
     #[test]
     fn check_min() {
         let mut st = SegTree::<usize>::new(
-            vec![0, 0, 0],
+            vec![std::usize::MAX, std::usize::MAX, std::usize::MAX],
             std::usize::MAX,
             Box::new(|l: usize, r: usize| -> usize { std::cmp::min(l, r) }),
             Box::new(|old: usize, new: usize| -> usize { new }),
