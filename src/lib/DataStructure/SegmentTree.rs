@@ -1,10 +1,10 @@
 // ============
 struct SegTree<T> {
-    // num: 葉(元データ)の数, data: ノードの値, neutral: 単位元, operation: 区間クエリ, update: 点更新
+    // num: 葉(元データ)の数, data: ノードの値, neutral: 単位元, merge: 区間クエリ, update_point: 点更新
     num: usize,
     data: Vec<T>,
     neutral: T,
-    operation: Box<Fn(T, T) -> T>,
+    merge: Box<Fn(T, T) -> T>,
     update_point: Box<Fn(T, T) -> T>,
 }
 
