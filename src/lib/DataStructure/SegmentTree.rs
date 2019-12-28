@@ -21,8 +21,10 @@ impl<T: Clone + Copy + std::fmt::Debug> SegTree<T> {
         for i in 0..v.len() {
             data[i + n - 1] = v[i];
         }
-        for i in (0..(n - 2)).rev() {
-            data[i] = merge(data[2 * i + 1], data[2 * i + 2]);
+        if n > 1 {
+            for i in (0..(n - 2)).rev() {
+                data[i] = merge(data[2 * i + 1], data[2 * i + 2]);
+            }
         }
         SegTree {
             num: n,
