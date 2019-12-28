@@ -1,43 +1,4 @@
 // =========
-use std::cmp::{max, min};
-use std::collections::{HashMap, HashSet};
-use std::process::exit;
-
-const MOD: usize = 1000000007;
-
-pub struct IO<R, W: std::io::Write>(R, std::io::BufWriter<W>);
-
-impl<R: std::io::Read, W: std::io::Write> IO<R, W> {
-    pub fn new(r: R, w: W) -> IO<R, W> {
-        IO(r, std::io::BufWriter::new(w))
-    }
-    pub fn write<S: std::ops::Deref<Target = str>>(&mut self, s: S) {
-        use std::io::Write;
-        self.1.write(s.as_bytes()).unwrap();
-    }
-    pub fn read<T: std::str::FromStr>(&mut self) -> T {
-        use std::io::Read;
-        let buf = self
-            .0
-            .by_ref()
-            .bytes()
-            .map(|b| b.unwrap())
-            .skip_while(|&b| b == b' ' || b == b'\n' || b == b'\r' || b == b'\t')
-            .take_while(|&b| b != b' ' && b != b'\n' && b != b'\r' && b != b'\t')
-            .collect::<Vec<_>>();
-        unsafe { std::str::from_utf8_unchecked(&buf) }
-            .parse()
-            .ok()
-            .expect("Parse error.")
-    }
-    pub fn vec<T: std::str::FromStr>(&mut self, n: usize) -> Vec<T> {
-        (0..n).map(|_| self.read()).collect()
-    }
-    pub fn chars(&mut self) -> Vec<char> {
-        self.read::<String>().chars().collect()
-    }
-}
-// =========
 struct SegTree<T> {
     // num: 葉(元データ)の数, data: ノードの値, neutral: 単位元, merge: 区間クエリ, update_point: 点更新
     num: usize,
@@ -102,6 +63,7 @@ impl<T: Clone + Copy + std::fmt::Debug> SegTree<T> {
 fn eulertour(
     adjl: &Vec<Vec<usize>>,
     u: usize,
+    p: usize,
     et: &mut Vec<usize>,
     depth: &mut Vec<usize>,
     d: usize,
@@ -111,52 +73,19 @@ fn eulertour(
     fid[u] = et.len();
     et.push(u);
     for v in &adjl[u] {
-        eulertour(adjl, *v, et, depth, d + 1, fid);
-        et.push(u);
-    }
-}
-
-fn main() {
-    let (r, w) = (std::io::stdin(), std::io::stdout());
-    let mut sc = IO::new(r.lock(), w.lock());
-    let n: usize = sc.read();
-    let mut adjl: Vec<Vec<usize>> = vec![vec![]; n];
-    for i in 0..n {
-        let k: usize = sc.read();
-        for _ in 0..k {
-            let c: usize = sc.read();
-            adjl[i].push(c);
+        if *v != p {
+            eulertour(adjl, *v, u, et, depth, d + 1, fid);
+            et.push(u);
         }
     }
-    println!("{:?}", adjl);
-    let mut et: Vec<usize> = vec![];
-    let mut depth: Vec<usize> = vec![std::usize::MAX; n];
-    let mut fid: Vec<usize> = vec![std::usize::MAX; n];
-    eulertour(&adjl, 0, &mut et, &mut depth, 0, &mut fid);
-    println!("{:?}", et);
-    println!("{:?}", depth);
-    println!("{:?}", fid);
-    println!("{:?}", et.len());
-
-    let mut rmq = RMQ::new(et.len());
-    for (i, d) in et.iter().enumerate() {
-        rmq.update(i, depth[*d]);
-    }
-    println!("{:?}", rmq);
-
-    let q: usize = sc.read();
-
-    // query 処理
-    for i in 0..q {
-        let u: usize = sc.read();
-        let v: usize = sc.read();
-    }
 }
+
+fn main() {}
 
 mod tests {
     use super::*;
     #[test]
-    fn check() {
+    fn check_euler_tour() {
         let adjl = vec![
             vec![1, 2, 3],
             vec![4, 5],
@@ -167,14 +96,66 @@ mod tests {
             vec![],
             vec![],
         ];
+        // euler tour... DFSで辿る頂点を順に保存したもの
         let mut et: Vec<usize> = vec![];
+        // 各頂点の深さ
         let mut depth: Vec<usize> = vec![std::usize::MAX; adjl.len()];
+        // 各頂点が初めて現れるetのIndex
         let mut fid: Vec<usize> = vec![std::usize::MAX; adjl.len()];
-        eulertour(&adjl, 0, &mut et, &mut depth, 0, &mut fid);
+        eulertour(&adjl, 0, 0, &mut et, &mut depth, 0, &mut fid);
         assert_eq!(et, vec![0, 1, 4, 1, 5, 6, 5, 7, 5, 1, 0, 2, 0, 3, 0]);
         println!("{:?}", et);
+        assert_eq!(depth, vec![0, 1, 1, 1, 2, 2, 3, 3]);
         println!("{:?}", depth);
+        assert_eq!(fid, vec![0, 1, 1, 1, 2, 2, 3, 3]);
         println!("{:?}", fid);
+    }
+
+    #[test]
+    fn check_lca() {
+        let adjl = vec![
+            vec![1, 2, 3],
+            vec![4, 5],
+            vec![],
+            vec![],
+            vec![],
+            vec![6, 7],
+            vec![],
+            vec![],
+        ];
+        // euler tour
+        let mut et: Vec<usize> = vec![];
+        // 各頂点の深さ
+        let mut depth: Vec<usize> = vec![std::usize::MAX; adjl.len()];
+        // 各頂点が初めて現れるetのIndex
+        let mut fid: Vec<usize> = vec![std::usize::MAX; adjl.len()];
+        eulertour(&adjl, 0, 0, &mut et, &mut depth, 0, &mut fid);
+        let v = et
+            .iter()
+            .map(|e| (*e, depth[*e]))
+            .collect::<Vec<(usize, usize)>>();
+        // オイラーツアーの最小値Indexを求めるセグ木
+        let st = SegTree::<(usize, usize)>::new(
+            v,
+            (std::usize::MAX, std::usize::MAX),
+            Box::new(
+                |l: (usize, usize), r: (usize, usize)| {
+                    if l.1 < r.1 {
+                        l
+                    } else {
+                        r
+                    }
+                },
+            ),
+            Box::new(|_old: (usize, usize), new: (usize, usize)| new),
+        );
+        let u = 6;
+        let v = 7;
+        if fid[u] < fid[v] {
+            assert_eq!(5, st.query(fid[u], fid[v], 0, 0, st.num).0);
+        } else {
+            assert_eq!(5, st.query(fid[v], fid[u], 0, 0, st.num).0)
+        }
     }
 
 }
