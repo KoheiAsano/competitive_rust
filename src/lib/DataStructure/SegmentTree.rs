@@ -8,7 +8,7 @@ struct SegTree<T> {
     update_point: Box<Fn(T, T) -> T>,
 }
 
-impl<T: Clone + Copy + std::fmt::Display> SegTree<T> {
+impl<T: Clone + Copy + std::fmt::Debug> SegTree<T> {
     // v...元配列, neutral...初期値かつ単位元, operation...区間クエリ, update:
     fn new(
         v: Vec<T>,
@@ -17,8 +17,6 @@ impl<T: Clone + Copy + std::fmt::Display> SegTree<T> {
         update_point: Box<Fn(T, T) -> T>,
     ) -> Self {
         let n = v.len().checked_next_power_of_two().unwrap();
-        println!("{:?}", n);
-        // let n = 2 * i - 1;
         let mut data: Vec<T> = vec![neutral; 2 * n - 1];
         for i in 0..v.len() {
             data[i + n - 1] = v[i];
@@ -36,18 +34,16 @@ impl<T: Clone + Copy + std::fmt::Display> SegTree<T> {
     }
     // 点更新, i番目の値をxで更新
     fn update(&mut self, i: usize, x: T) {
-        println!("{} {}", i, x);
         let mut i = i + self.num - 1; // 対応する葉のNodeへ
-        println!("{:?}", i);
         self.data[i] = (self.update_point)(self.data[i], x);
         while i > 0 {
-            println!("{:?}", i);
             i = (i - 1) / 2;
             // 親の値を更新する
             self.data[i] = (self.operation)(self.data[i * 2 + 1], self.data[i * 2 + 2]);
         }
     }
     // [a, b): クエリの区間, k: valueのNode, [l,r): k-Nodeの担当区間
+    // 0-indexedで来たら[a, b+1]をする
     fn query(&self, a: usize, b: usize, k: usize, l: usize, r: usize) -> T {
         if r <= a || b <= l {
             self.neutral // 区間がかぶらないので単位元
@@ -70,7 +66,7 @@ mod tests {
     #[test]
     fn check_min() {
         let mut st = SegTree::<usize>::new(
-            vec![std::usize::MAX, std::usize::MAX, std::usize::MAX],
+            vec![std::usize::MAX;3],
             std::usize::MAX,
             Box::new(|l: usize, r: usize| -> usize { std::cmp::min(l, r) }),
             Box::new(|old: usize, new: usize| -> usize { new }),
@@ -87,7 +83,7 @@ mod tests {
     #[test]
     fn check_sum() {
         let mut st = SegTree::<usize>::new(
-            vec![0, 0, 0],
+            vec![0;3],
             0,
             Box::new(|l: usize, r: usize| -> usize { l + r }),
             Box::new(|old: usize, new: usize| -> usize { new }),
