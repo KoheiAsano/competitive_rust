@@ -42,6 +42,9 @@ macro_rules! impl_modinv {
                 ab = (ab.1, ab.0 - t * ab.1);
                 uv = (uv.1, uv.0 - t * uv.1);
             }
+            if ab.0 != 1 {
+                panic!("{} and {} are not coprime g={}", a, m, ab.0);
+            }
             let inv = uv.0 % m as i64;
             if inv < 0 {
                 (inv + m as i64) as $U
