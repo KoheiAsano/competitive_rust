@@ -30,7 +30,7 @@ where
     }
 }
 
-// mod mの体におけるaの逆元
+// mod mの体におけるaの逆元 log(m)
 macro_rules! impl_modinv {
     ($U:ty) => {
         fn mod_inv(a: $U, m: $U) -> $U {
@@ -56,7 +56,7 @@ macro_rules! impl_modinv {
 }
 
 impl_modinv!(u64);
-// mr ... 素数,
+// mr ... 互いに素
 fn garner(mr: &mut Vec<(u64, u64)>, m: u64) -> u64 {
     mr.push((m, 0));
     // coef... mixed radixの係数, constants... 前まで求めた係数
