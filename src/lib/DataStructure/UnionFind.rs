@@ -1,36 +1,38 @@
 //
 /*
-サイズはVecにしちゃっている
+中身はi64だけど外はusizeにしてみる
 */
 
 // ============
 #[derive(Debug)]
 struct UnionFind {
-    // size= 親ならサイズ,その他は未定義. table=親を指す
-    size: Vec<usize>,
-    table: Vec<usize>,
+    // size= 親なら負のサイズ、子なら親
+    // number= 集合の数
+    table: Vec<i64>,
+    number: usize,
 }
 impl UnionFind {
     fn new(n: usize) -> Self {
-        let size = vec![1; n];
         let mut table = vec![0; n];
         for i in 0..n {
-            table[i] = i;
+            table[i] = -1;
         }
-
-        UnionFind { table: table, size }
+        UnionFind {
+            table: table,
+            number: n,
+        }
     }
 }
 impl UnionFind {
     fn root(&mut self, x: usize) -> usize {
         // 負ならそれが親
         // 他のを指しているならたどる
-        if self.table[x] == x {
+        if self.table[x] < 0 {
             x
         } else {
-            let tmp = self.table[x];
-            self.table[x] = self.root(tmp);
-            self.table[x]
+            let tmp = self.root(self.table[x] as usize);
+            self.table[x] = tmp as i64;
+            tmp
         }
     }
     fn same(&mut self, a: usize, b: usize) -> bool {
@@ -40,17 +42,27 @@ impl UnionFind {
     fn union(&mut self, a: usize, b: usize) -> () {
         let a_root = self.root(a);
         let b_root = self.root(b);
+
         if a_root == b_root {
             return ();
         }
-        // ここは工夫していない思考停止でbにマージ
-        self.table[a_root] = b_root;
-        self.size[b_root] += self.size[a_root];
+        // 負なので小さい法が大きい. 大きい方につける
+        if self.table[a_root] > self.table[b_root] {
+            self.table[b_root] += self.table[a_root];
+            self.table[a_root] = b_root as i64;
+        } else {
+            self.table[a_root] += self.table[b_root];
+            self.table[b_root] = a_root as i64;
+        }
+        self.number -= 1;
     }
     // 親のサイズを返す
     fn size(&mut self, x: usize) -> usize {
         let ri = self.root(x);
-        self.size[ri]
+        -self.table[ri] as usize
+    }
+    fn count(&self) -> usize {
+        self.number
     }
 }
 
@@ -69,6 +81,7 @@ mod tests {
         }
         // つなぐ
         uf.union(0, 1);
+        println!("{:?}", uf);
         uf.union(0, 0);
         uf.union(1, 2);
         uf.union(2, 9);
