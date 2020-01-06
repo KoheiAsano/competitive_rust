@@ -83,13 +83,11 @@ impl PartialOrd for Edge {
 }
 
 #[derive(Debug)]
-struct Kruscal {
-    min_spanning: Vec<Edge>,
-}
+struct Kruscal {}
 impl Kruscal {
     // build minimum spanning tree
-    fn build(edges: &mut Vec<Edge>) -> (Vec<Edge>, i64) {
-        let mut uf = UnionFind::new(edges.len());
+    fn build(v: usize, edges: &mut Vec<Edge>) -> (Vec<Edge>, i64) {
+        let mut uf = UnionFind::new(v);
         // sort ascending order
         edges.sort();
         // remove duplicated edge
@@ -136,7 +134,7 @@ mod tests {
                 cost: *c,
             })
             .collect();
-        let k = Kruscal::build(&mut edges);
+        let k = Kruscal::build(v, &mut edges);
         println!("{:?}", k);
     }
 
@@ -181,5 +179,3 @@ mod tests {
         assert_eq!(uf.size(9), 3);
     }
 }
-
-fn main() {}
