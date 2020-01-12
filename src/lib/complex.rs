@@ -1,4 +1,5 @@
-use std::ops;
+// ==============
+
 #[derive(Clone, Copy, Debug)]
 struct Complex {
     re: f64,
@@ -32,7 +33,7 @@ impl PartialEq for Complex {
 }
 
 // Operations
-impl ops::Add<Complex> for Complex {
+impl std::ops::Add<Complex> for Complex {
     type Output = Self;
     fn add(self, rhs: Complex) -> Self::Output {
         Complex {
@@ -41,13 +42,13 @@ impl ops::Add<Complex> for Complex {
         }
     }
 }
-impl ops::AddAssign<Complex> for Complex {
+impl std::ops::AddAssign<Complex> for Complex {
     fn add_assign(&mut self, rhs: Complex) {
         *self = *self + rhs;
     }
 }
 
-impl ops::Mul<Complex> for Complex {
+impl std::ops::Mul<Complex> for Complex {
     type Output = Self;
     fn mul(self, rhs: Complex) -> Self::Output {
         Complex {
@@ -56,13 +57,13 @@ impl ops::Mul<Complex> for Complex {
         }
     }
 }
-impl ops::MulAssign<Complex> for Complex {
+impl std::ops::MulAssign<Complex> for Complex {
     fn mul_assign(&mut self, rhs: Complex) {
         *self = *self * rhs;
     }
 }
 
-impl ops::Div<Complex> for Complex {
+impl std::ops::Div<Complex> for Complex {
     type Output = Self;
     fn div(self, rhs: Complex) -> Self::Output {
         let denomi = self.im.powf(2.0) + rhs.im.powf(2.0);
@@ -72,7 +73,7 @@ impl ops::Div<Complex> for Complex {
         }
     }
 }
-impl ops::DivAssign<Complex> for Complex {
+impl std::ops::DivAssign<Complex> for Complex {
     fn div_assign(&mut self, rhs: Complex) {
         *self = *self / rhs;
     }
@@ -81,7 +82,7 @@ impl ops::DivAssign<Complex> for Complex {
 // operations to primitive numbers
 macro_rules! impl_ops {
     ($I:ty) => {
-        impl ops::Add<$I> for Complex {
+        impl std::ops::Add<$I> for Complex {
             type Output = Self;
             fn add(self, rhs: $I) -> Self::Output {
                 Complex {
@@ -90,13 +91,13 @@ macro_rules! impl_ops {
                 }
             }
         }
-        impl ops::AddAssign<$I> for Complex {
+        impl std::ops::AddAssign<$I> for Complex {
             fn add_assign(&mut self, rhs: $I) {
                 *self = *self + rhs as f64;
             }
         }
 
-        impl ops::Mul<$I> for Complex {
+        impl std::ops::Mul<$I> for Complex {
             type Output = Self;
             fn mul(self, rhs: $I) -> Self::Output {
                 Complex {
@@ -105,13 +106,13 @@ macro_rules! impl_ops {
                 }
             }
         }
-        impl ops::MulAssign<$I> for Complex {
+        impl std::ops::MulAssign<$I> for Complex {
             fn mul_assign(&mut self, rhs: $I) {
                 *self = *self * rhs as f64;
             }
         }
 
-        impl ops::Div<$I> for Complex {
+        impl std::ops::Div<$I> for Complex {
             type Output = Self;
             fn div(self, rhs: $I) -> Self::Output {
                 Complex {
@@ -120,7 +121,7 @@ macro_rules! impl_ops {
                 }
             }
         }
-        impl ops::DivAssign<$I> for Complex {
+        impl std::ops::DivAssign<$I> for Complex {
             fn div_assign(&mut self, rhs: $I) {
                 *self = *self / rhs;
             }
@@ -147,6 +148,7 @@ macro_rules! impl_from {
 impl_from!(f64);
 impl_from!(u64);
 impl_from!(i64);
+impl_from!(i32);
 
 // additional operations
 #[allow(dead_code)]
@@ -170,6 +172,8 @@ impl Complex {
         }
     }
 }
+
+// ==============
 
 mod tests {
     #[allow(unused_imports)]
@@ -212,5 +216,4 @@ mod tests {
         i /= 4;
         assert_eq!(i, Complex::new(0.0, 0.25));
     }
-
 }
