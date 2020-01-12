@@ -122,8 +122,10 @@ macro_rules! define_modint {
         }
     };
 }
+// 167772161 = 5*2^25 + 1, 469762049 = 7*2^26 + 1, 998244353 = 119*2^23 + 1,
 define_modint!(ModInt998244353, 998244353);
-
+define_modint!(ModInt167772161, 167772161);
+define_modint!(ModInt469762049, 469762049);
 mod tests {
     use super::*;
     #[test]
