@@ -1,6 +1,6 @@
 // ==============
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy)]
 struct Complex {
     re: f64,
     im: f64,
@@ -26,6 +26,16 @@ impl Complex {
     }
 }
 
+// debug display
+impl std::fmt::Debug for Complex {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        if self.im >= 0.0 {
+            write!(f, "{}+{}i", self.re, self.im)
+        } else {
+            write!(f, "{}{}i", self.re, self.im)
+        }
+    }
+}
 impl PartialEq for Complex {
     fn eq(&self, other: &Complex) -> bool {
         (self.re - other.re).abs() < 10e-9 && (self.im - other.im).abs() < 10e-9
