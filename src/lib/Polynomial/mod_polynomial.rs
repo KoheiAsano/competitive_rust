@@ -246,6 +246,19 @@ impl<T: ModI> From<Vec<T>> for Polynomial<T> {
     }
 }
 
+// methods
+impl<T: ModI> Polynomial<T> {
+    fn shrink(mut self) -> Self {
+        for i in (0..self.coef.len()).rev() {
+            if self.coef[i] != 0 {
+                self.coef.truncate(i + 1);
+                break;
+            }
+        }
+        self
+    }
+}
+
 #[test]
 fn check_new_from() {
     type F = ModInt998244353;
@@ -266,12 +279,12 @@ impl<T: ModI> std::ops::Add<Polynomial<T>> for Polynomial<T> {
             for i in 0..self.coef.len() {
                 rhs.coef[i] += self.coef[i];
             }
-            rhs
+            rhs.shrink()
         } else {
             for i in 0..rhs.coef.len() {
                 self.coef[i] += rhs.coef[i];
             }
-            self
+            self.shrink()
         }
     }
 }
@@ -318,7 +331,6 @@ impl<T: ModI> std::ops::Div<Polynomial<T>> for Polynomial<T> {
             let res_size = n - m + 1;
             let mut res = Polynomial::from(vec![T::default(); res_size]);
             for i in 0..res_size {
-                // if self.coef[n - (i + 1)] % rhs.coef[m - 1] != 0 {}
                 let b = self.coef[n - (i + 1)] / rhs.coef[m - 1];
                 res.coef[res_size - (i + 1)] = b;
                 for j in 1..m {
