@@ -1,8 +1,6 @@
 // =========
 pub trait ModI:
     Sized
-    + Eq
-    + Ord
     + Copy
     + std::ops::Add<Output = Self>
     + std::ops::Sub<Output = Self>
@@ -12,6 +10,9 @@ pub trait ModI:
     + std::ops::SubAssign
     + std::ops::MulAssign
     + std::ops::DivAssign
+    + std::default::Default
+    + std::fmt::Display
+    + std::fmt::Debug
 {
     fn m() -> u64;
     fn new(x: u64) -> Self;
@@ -47,6 +48,12 @@ macro_rules! define_modint {
 
             fn inv(&self) -> $n {
                 self.pow($m - 2)
+            }
+        }
+
+        impl std::default::Default for $n {
+            fn default() -> $n {
+                $n::new(0u64)
             }
         }
 
