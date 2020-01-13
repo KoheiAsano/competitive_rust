@@ -141,6 +141,7 @@ macro_rules! define_modint {
     };
 }
 // 10^8 < p < 10^9
+// 3 is primitive p-1 root of these
 // 167772161 = 5*2^25 + 1, 469762049 = 7*2^26 + 1, 998244353 = 119*2^23 + 1
 // 1224736769 = 73 * 2^24 + 1
 // define_modint!(ModInt167772161, 167772161);
@@ -277,6 +278,19 @@ impl<T: ModI> Polynomial<T> {
         }
         self
     }
+
+    // many clone pow
+    fn pow(mut self, mut n: u64) -> Self {
+        let mut res: Polynomial<T> = Polynomial::from(vec![T::new(1)]);
+        while n > 0 {
+            if n & 1 == 1 {
+                res *= self.clone();
+            }
+            self *= self.clone();
+            n >>= 1;
+        }
+        res
+    }
 }
 
 // operations these borrow references
@@ -299,6 +313,12 @@ impl<T: ModI> std::ops::Add<Polynomial<T>> for Polynomial<T> {
     }
 }
 
+impl<T: ModI> std::ops::AddAssign<Polynomial<T>> for Polynomial<T> {
+    fn add_assign(&mut self, rhs: Polynomial<T>) {
+        *self = self.clone() + rhs;
+    }
+}
+
 impl<T: ModI> std::ops::Sub<Polynomial<T>> for Polynomial<T> {
     type Output = Polynomial<T>;
 
@@ -316,7 +336,11 @@ impl<T: ModI> std::ops::Sub<Polynomial<T>> for Polynomial<T> {
         }
     }
 }
-
+impl<T: ModI> std::ops::SubAssign<Polynomial<T>> for Polynomial<T> {
+    fn sub_assign(&mut self, rhs: Polynomial<T>) {
+        *self = self.clone() - rhs;
+    }
+}
 // convolution
 impl<T: ModI> std::ops::Mul<Polynomial<T>> for Polynomial<T> {
     type Output = Polynomial<T>;
@@ -329,6 +353,11 @@ impl<T: ModI> std::ops::Mul<Polynomial<T>> for Polynomial<T> {
     }
 }
 
+impl<T: ModI> std::ops::MulAssign<Polynomial<T>> for Polynomial<T> {
+    fn mul_assign(&mut self, rhs: Polynomial<T>) {
+        *self = self.clone() * rhs;
+    }
+}
 // scalar multiplication
 impl<T: ModI> std::ops::Mul<T> for Polynomial<T> {
     type Output = Polynomial<T>;
@@ -338,6 +367,12 @@ impl<T: ModI> std::ops::Mul<T> for Polynomial<T> {
             self.coef[i] *= rhs;
         }
         self
+    }
+}
+
+impl<T: ModI> std::ops::MulAssign<T> for Polynomial<T> {
+    fn mul_assign(&mut self, rhs: T) {
+        *self = self.clone() * rhs;
     }
 }
 
@@ -364,6 +399,13 @@ impl<T: ModI> std::ops::Div<Polynomial<T>> for Polynomial<T> {
         }
     }
 }
+
+impl<T: ModI> std::ops::DivAssign<Polynomial<T>> for Polynomial<T> {
+    fn div_assign(&mut self, rhs: Polynomial<T>) {
+        *self = self.clone() / rhs;
+    }
+}
+
 impl<T: ModI> std::ops::Rem<Polynomial<T>> for Polynomial<T> {
     type Output = Polynomial<T>;
 
@@ -405,6 +447,7 @@ fn check_ops() {
     println!("p/q={:?}", p.clone() / q.clone());
     println!("p%q={:?}", (p.clone() % q.clone()).coef);
     println!("p*42={:?}", p * F::new(42));
+    println!("p^4{:?}", q.pow(4));
 }
 
 fn main() {}
