@@ -1,4 +1,3 @@
-// =========
 pub trait ModI:
     Sized
     + PartialEq
@@ -135,10 +134,12 @@ macro_rules! define_modint {
     };
 }
 // 10^8 < p < 10^9
+// 3 is primitive p-1 root of these
 // 167772161 = 5*2^25 + 1, 469762049 = 7*2^26 + 1, 998244353 = 119*2^23 + 1
+// 1224736769 = 73 * 2^24 + 1
 // define_modint!(ModInt167772161, 167772161);
 // define_modint!(ModInt469762049, 469762049);
-define_modint!(ModInt998244353, 998244353);
+define_modint!(ModInt1224736769, 1224736769);
 fn ntt<T: ModI>(a: &mut [T], n: usize, inv: bool) {
     // h = log2(n)
     let h = {
@@ -213,25 +214,66 @@ fn single_convolution<T: ModI>(a: &mut [T], b: &mut [T]) -> Vec<T> {
     a.resize(n, T::new(0));
     let mut b = b.to_vec();
     b.resize(n, T::new(0));
-    mod_conv(&mut a, &mut b)
+    let mut res = mod_conv(&mut a, &mut b);
+    res.truncate(d);
+    res
 }
 
-fn main() {
-    input! {
-        n:usize,
-        ab: [(u64, u64);n]
+fn mod_pow(mut a: u64, mut n: u64, m: u64) -> u64 {
+    let mut ret = 1;
+    while n > 0 {
+        if n & 1 == 1 {
+            ret *= a;
+            ret %= m;
+        }
+        a *= a;
+        a %= m;
+        n >>= 1;
     }
-    let mut a = Vec::with_capacity(n);
-    let mut b = Vec::with_capacity(n);
-    a.push(F::new(0));
-    b.push(F::new(0));
-    type F = ModInt998244353;
-    for i in 0..n {
-        a.push(F::new(ab[i].0));
-        b.push(F::new(ab[i].1));
+    ret
+}
+// mod mの体におけるaの逆元
+fn mod_inv(a: u64, m: u64) -> u64 {
+    mod_pow(a, m - 2, m)
+}
+fn garner(mr: &mut Vec<(u64, u64)>, m: u64) -> u64 {
+    mr.push((m, 0));
+    // coef... mixed radixの係数, constants... 前まで求めた係数
+    let mut coef: Vec<u64> = vec![1; mr.len()];
+    let mut constants: Vec<u64> = vec![0; mr.len()];
+    for i in 0..mr.len() - 1 {
+        let v: u64 = (mr[i].1 + mr[i].0 - constants[i]) * mod_inv(coef[i], mr[i].0) % mr[i].0;
+        for j in i + 1..mr.len() {
+            constants[j] += coef[j] * v;
+            constants[j] %= mr[j].0;
+            coef[j] *= mr[i].0;
+            coef[j] %= mr[j].0;
+        }
     }
-    let res = single_convolution(&mut a, &mut b);
-    for i in 1..2 * n + 1 {
-        println!("{}", res[i].0);
+    constants[mr.len() - 1]
+}
+
+// for more bigger number
+fn convolution(a: &[u64], b: &[u64]) -> Vec<u64> {
+    let d: usize = a.len() + b.len() - 1;
+    let n = d.checked_next_power_of_two().unwrap();
+    let mut a = a.to_vec();
+    a.resize(n, 0);
+    let mut b = b.to_vec();
+    b.resize(n, 0);
+    type F0 = ModInt1224736769;
+    type F1 = ModInt998244353;
+    let mut a0: Vec<F0> = a.iter().map(|e| F0::new(*e)).collect();
+    let mut b0: Vec<F0> = b.iter().map(|e| F0::new(*e)).collect();
+    let res0 = single_convolution(&mut a0, &mut b0);
+    let mut a1: Vec<F1> = a.iter().map(|e| F1::new(*e)).collect();
+    let mut b1: Vec<F1> = b.iter().map(|e| F1::new(*e)).collect();
+    let res1 = single_convolution(&mut a1, &mut b1);
+    let mut res: Vec<u64> = vec![];
+    for i in 0..res0.len() {
+        let mut mr = vec![(1224736769u64, res0[i].0), (998244353u64, res1[i].0)];
+        let v = garner(&mut mr, std::u64::MAX);
+        res.push(v);
     }
+    res
 }
