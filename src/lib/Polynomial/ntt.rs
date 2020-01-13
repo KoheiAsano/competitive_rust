@@ -1,6 +1,7 @@
 // =========
 pub trait ModI:
     Sized
+    + PartialEq
     + Copy
     + std::ops::Add<Output = Self>
     + std::ops::Sub<Output = Self>

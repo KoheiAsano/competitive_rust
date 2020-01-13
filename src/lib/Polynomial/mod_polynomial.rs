@@ -226,7 +226,7 @@ impl<T: ModI> std::fmt::Debug for Polynomial<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         let mut res = format!("{}", self.coef[0]);
         for i in 1..self.coef.len() {
-            res = format!("{}+{}(x{})", res, self.coef[i], i);
+            res = format!("{}(x{})+{}", self.coef[i], i, res);
         }
         write!(f, "{}", res)
     }
@@ -306,7 +306,52 @@ impl<T: ModI> std::ops::Mul<Polynomial<T>> for Polynomial<T> {
         }
     }
 }
+impl<T: ModI> std::ops::Div<Polynomial<T>> for Polynomial<T> {
+    type Output = Polynomial<T>;
 
+    fn div(mut self, rhs: Polynomial<T>) -> Self::Output {
+        if self.coef.len() < rhs.coef.len() {
+            Polynomial::new()
+        } else {
+            let n = self.coef.len();
+            let m = rhs.coef.len();
+            let res_size = n - m + 1;
+            let mut res = Polynomial::from(vec![T::default(); res_size]);
+            for i in 0..res_size {
+                // if self.coef[n - (i + 1)] % rhs.coef[m - 1] != 0 {}
+                let b = self.coef[n - (i + 1)] / rhs.coef[m - 1];
+                res.coef[res_size - (i + 1)] = b;
+                for j in 1..m {
+                    self.coef[n - (i + j)] -= b * rhs.coef[m - j];
+                }
+            }
+            res
+        }
+    }
+}
+impl<T: ModI> std::ops::Rem<Polynomial<T>> for Polynomial<T> {
+    type Output = Polynomial<T>;
+
+    fn rem(mut self, rhs: Polynomial<T>) -> Self::Output {
+        if self.coef.len() < rhs.coef.len() {
+            self
+        } else {
+            let n = self.coef.len();
+            let m = rhs.coef.len();
+            let res_size = n - m + 1;
+            let mut res = Polynomial::from(vec![T::default(); res_size]);
+            for i in 0..res_size {
+                let b = self.coef[n - (i + 1)] / rhs.coef[m - 1];
+                res.coef[res_size - (i + 1)] = b;
+                for j in 1..m + 1 {
+                    self.coef[n - (i + j)] -= b * rhs.coef[m - j];
+                }
+                println!("{:?}", self);
+            }
+            self
+        }
+    }
+}
 #[test]
 fn check_ops() {
     type F = ModInt998244353;
@@ -317,6 +362,14 @@ fn check_ops() {
     let v: Vec<F> = vec![F::new(1), F::new(2), F::new(4), F::new(8)];
     let q = Polynomial::from(v);
     println!("{:?}", p * q);
+    let v: Vec<F> = vec![F::new(1), F::new(5), F::new(4), F::new(1)];
+    let p = Polynomial::from(v);
+    println!("p={:?}", p);
+    let v: Vec<F> = vec![F::new(1), F::new(0), F::new(1)];
+    let q = Polynomial::from(v);
+    println!("q={:?}", q);
+    println!("{:?}", p.clone() / q.clone());
+    println!("{:?}", p.clone() % q.clone());
 }
 
 fn main() {}
