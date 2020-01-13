@@ -59,6 +59,12 @@ where
     }
 }
 
+impl<T: Copy + Clone> From<[[T; N]; N]> for Matrix<T> {
+    fn from(m: [[T; N]; N]) -> Self {
+        Matrix { val: m }
+    }
+}
+
 #[test]
 fn check_gen() {
     println!("{:?}", Matrix::<i64>::i());
@@ -96,12 +102,6 @@ fn check_permutation() {
     let p12: Matrix<i64> = Matrix::permutation(1, 2);
     // 左から掛けると行交換
     println!("p*m=\n{:?}", p12 * m);
-}
-
-impl<T: Copy + Clone> From<[[T; N]; N]> for Matrix<T> {
-    fn from(m: [[T; N]; N]) -> Self {
-        Matrix { val: m }
-    }
 }
 
 // operations
