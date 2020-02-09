@@ -113,11 +113,11 @@ impl<T: PartialEq + PartialOrd + Clone> BST<T> {
                     self.delete(m.as_ref().unwrap());
                     self.v = m;
                 } else if self.l.is_some() {
-                    let l = self.l.take();
-                    *self = *(l.unwrap());
+                    let l = self.l.take().unwrap();
+                    *self = *l;
                 } else if self.r.is_some() {
-                    let r = self.r.take();
-                    *self = *(r.unwrap());
+                    let r = self.r.take().unwrap();
+                    *self = *r;
                 } else {
                     ()
                 }
