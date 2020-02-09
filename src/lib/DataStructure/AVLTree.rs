@@ -48,6 +48,7 @@ impl<T: PartialEq + PartialOrd + Clone> BST<T> {
             self.h = 0
         }
     }
+
     // 親の左をもぐ
     // 左の右をもぐ
     // 左を親にする
@@ -65,7 +66,9 @@ impl<T: PartialEq + PartialOrd + Clone> BST<T> {
         // 元の親の左に元左の右を
         lst.l = lst_rst;
         // 元左の右に元親を
-        self.r = Some(lst)
+        lst.fixHeight();
+        self.r = Some(lst);
+        self.fixHeight();
     }
 
     fn rotateL(&mut self) {
@@ -73,7 +76,9 @@ impl<T: PartialEq + PartialOrd + Clone> BST<T> {
         let rst_lst: Option<Box<BST<T>>> = rst.l.take();
         std::mem::swap(&mut *self, &mut rst);
         rst.r = rst_lst;
-        self.l = Some(rst)
+        rst.fixHeight();
+        self.l = Some(rst);
+        self.fixHeight();
     }
 
     fn rotateLR(&mut self) {}
@@ -137,23 +142,15 @@ impl<T: PartialEq + PartialOrd + Clone> BST<T> {
             if *v < n {
                 match &mut self.r {
                     Some(r) => r.insert(n),
-                    None => {
-                        self.r = Some(BST::new_node(n));
-                        if self.l.is_none() {
-                            self.h += 1;
-                        }
-                    }
+                    None => self.r = Some(BST::new_node(n)),
                 }
+                self.fixHeight();
             } else {
                 match &mut self.l {
                     Some(l) => l.insert(n),
-                    None => {
-                        self.l = Some(BST::new_node(n));
-                        if self.r.is_none() {
-                            self.h += 1;
-                        }
-                    }
+                    None => self.l = Some(BST::new_node(n)),
                 }
+                self.fixHeight();
             }
         } else {
             self.v = Some(n);
