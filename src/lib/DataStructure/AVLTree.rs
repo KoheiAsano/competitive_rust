@@ -1,6 +1,6 @@
 #[derive(Debug, Clone)]
 struct BST<T: PartialEq + PartialOrd + Clone> {
-    d: isize,
+    h: isize,
     v: Option<T>,
     l: Option<Box<BST<T>>>,
     r: Option<Box<BST<T>>>,
@@ -9,7 +9,7 @@ struct BST<T: PartialEq + PartialOrd + Clone> {
 impl<T: PartialEq + PartialOrd + Clone> BST<T> {
     fn new() -> BST<T> {
         BST {
-            d: 0,
+            h: 0,
             v: None,
             l: None,
             r: None,
@@ -18,7 +18,7 @@ impl<T: PartialEq + PartialOrd + Clone> BST<T> {
 
     fn new_node(n: T) -> Box<BST<T>> {
         Box::new(BST {
-            d: 0,
+            h: 0,
             v: Some(n),
             l: None,
             r: None,
@@ -36,6 +36,8 @@ impl<T: PartialEq + PartialOrd + Clone> BST<T> {
             }
         }
     }
+
+    fn fixHeight(&mut self) {}
 
     fn find(&self, n: &T) -> bool {
         if let Some(v) = &self.v {
@@ -97,7 +99,7 @@ impl<T: PartialEq + PartialOrd + Clone> BST<T> {
                     None => {
                         self.r = Some(BST::new_node(n));
                         if self.l.is_none() {
-                            self.d += 1;
+                            self.h += 1;
                         }
                     }
                 }
@@ -107,7 +109,7 @@ impl<T: PartialEq + PartialOrd + Clone> BST<T> {
                     None => {
                         self.l = Some(BST::new_node(n));
                         if self.r.is_none() {
-                            self.d += 1;
+                            self.h += 1;
                         }
                     }
                 }
