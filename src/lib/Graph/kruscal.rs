@@ -179,3 +179,5 @@ mod tests {
         assert_eq!(uf.size(9), 3);
     }
 }
+
+fn main() {}

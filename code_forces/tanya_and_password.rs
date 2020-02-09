@@ -76,6 +76,7 @@ fn main() {
     let n: usize = sc.read();
 
     let mut deg = HashMap::<(u8, u8), isize>::new();
+    // tuple のMapを初期化
     let mut adjl = {
         let mut adtmp = HashMap::<(u8, u8), Vec<(u8, u8)>>::new();
         for i in 0..255 {
@@ -85,6 +86,7 @@ fn main() {
         }
         adtmp
     };
+    // input を受け取る
     for _ in 0..n {
         let s: String = sc.read();
         let s = s.as_bytes();
@@ -109,6 +111,7 @@ fn main() {
             }
         }
     }
+    // 始点を決める
     let start: (u8, u8) = {
         let mut s: (u8, u8) = (std::u8::MAX, std::u8::MAX);
         for (n, d) in &deg {

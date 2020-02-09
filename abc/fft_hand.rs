@@ -1,3 +1,98 @@
+macro_rules! input {
+    (source = $s:expr, $($r:tt)*) => {
+        let mut iter = $s.split_whitespace();
+        input_inner!{iter, $($r)*}
+    };
+    ($($r:tt)*) => {
+        let s = {
+            use std::io::Read;
+            let mut s = String::new();
+            std::io::stdin().read_to_string(&mut s).unwrap();
+            s
+        };
+        let mut iter = s.split_whitespace();
+        input_inner!{iter, $($r)*}
+    };
+}
+macro_rules! input_inner {
+    ($iter:expr) => {};
+    ($iter:expr, ) => {};
+    // var... 変数の識別子, $t...型を一つよむ
+    ($iter:expr, $var:ident : $t:tt $($r:tt)*) => {
+        let $var = read_value!($iter, $t);
+        //ここで繰り返し
+        input_inner!{$iter $($r)*}
+    };
+}
+macro_rules! read_value {
+    ($iter:expr, ( $($t:tt),* )) => {
+        ( $(read_value!($iter, $t)),* )
+    };
+    //
+    ($iter:expr, [ $t:tt ; $len:expr ]) => {
+        (0..$len).map(|_| read_value!($iter, $t)).collect::<Vec<_>>()
+    };
+    ($iter:expr, chars) => {
+        read_value!($iter, String).chars().collect::<Vec<char>>()
+    };
+    ($iter:expr, usize1) => {
+        read_value!($iter, usize) - 1
+    };
+    // 配列の最後のNestではここで型が指定されてparseされる
+    ($iter:expr, $t:ty) => {
+        $iter.next().unwrap().parse::<$t>().expect("Parse error")
+    };
+}
+macro_rules! input {
+    (source = $s:expr, $($r:tt)*) => {
+        let mut iter = $s.split_whitespace();
+        input_inner!{iter, $($r)*}
+    };
+    ($($r:tt)*) => {
+        let s = {
+            use std::io::Read;
+            let mut s = String::new();
+            std::io::stdin().read_to_string(&mut s).unwrap();
+            s
+        };
+        let mut iter = s.split_whitespace();
+        input_inner!{iter, $($r)*}
+    };
+}
+
+macro_rules! input_inner {
+    ($iter:expr) => {};
+    ($iter:expr, ) => {};
+    // var... 変数の識別子, $t...型を一つよむ
+    ($iter:expr, $var:ident : $t:tt $($r:tt)*) => {
+        let $var = read_value!($iter, $t);
+        //ここで繰り返し
+        input_inner!{$iter $($r)*}
+    };
+}
+
+macro_rules! read_value {
+    ($iter:expr, ( $($t:tt),* )) => {
+        ( $(read_value!($iter, $t)),* )
+    };
+    //
+    ($iter:expr, [ $t:tt ; $len:expr ]) => {
+        (0..$len).map(|_| read_value!($iter, $t)).collect::<Vec<_>>()
+    };
+
+    ($iter:expr, chars) => {
+        read_value!($iter, String).chars().collect::<Vec<char>>()
+    };
+
+    ($iter:expr, usize1) => {
+        read_value!($iter, usize) - 1
+    };
+    // 配列の最後のNestではここで型が指定されてparseされる
+    ($iter:expr, $t:ty) => {
+        $iter.next().unwrap().parse::<$t>().expect("Parse error")
+    };
+}
+// =========
 pub trait ModI:
     Sized
     + PartialEq
@@ -138,7 +233,7 @@ macro_rules! define_modint {
 // 167772161 = 5*2^25 + 1, 469762049 = 7*2^26 + 1, 998244353 = 119*2^23 + 1
 // 1224736769 = 73 * 2^24 + 1
 // define_modint!(ModInt167772161, 167772161);
-// define_modint!(ModInt469762049, 469762049);
+define_modint!(ModInt998244353, 998244353);
 define_modint!(ModInt1224736769, 1224736769);
 fn ntt<T: ModI>(a: &mut [T], n: usize, inv: bool) {
     // h = log2(n)
@@ -218,7 +313,6 @@ fn single_convolution<T: ModI>(a: &mut [T], b: &mut [T]) -> Vec<T> {
     res.truncate(d);
     res
 }
-
 fn mod_pow(mut a: u64, mut n: u64, m: u64) -> u64 {
     let mut ret = 1;
     while n > 0 {
@@ -253,28 +347,39 @@ fn garner(mr: &mut Vec<(u64, u64)>, m: u64) -> u64 {
     constants[mr.len() - 1]
 }
 
-// for more bigger number
-// better for inline in main
-fn convolution(a: &[u64], b: &[u64]) -> Vec<u64> {
-    let d: usize = a.len() + b.len() - 1;
-    let n = d.checked_next_power_of_two().unwrap();
-    let mut a = a.to_vec();
-    a.resize(n, 0);
-    let mut b = b.to_vec();
-    b.resize(n, 0);
+fn main() {
+    input! {
+        n:usize,
+        m:u64,
+        a: [usize;n]
+    }
     type F0 = ModInt1224736769;
     type F1 = ModInt998244353;
-    let mut a0: Vec<F0> = a.iter().map(|e| F0::new(*e)).collect();
-    let mut b0: Vec<F0> = b.iter().map(|e| F0::new(*e)).collect();
+    let mut a = a;
+    a.sort();
+    let mut a0 = vec![F0::new(0); a[n - 1] + 1];
+    let mut a1 = vec![F1::new(0); a[n - 1] + 1];
+    let mut b0 = vec![F0::new(0); a[n - 1] + 1];
+    let mut b1 = vec![F1::new(0); a[n - 1] + 1];
+    for e in a {
+        a0[e] += F0::new(1);
+        b0[e] += F0::new(1);
+        a1[e] += F1::new(1);
+        b1[e] += F1::new(1);
+    }
     let res0 = single_convolution(&mut a0, &mut b0);
-    let mut a1: Vec<F1> = a.iter().map(|e| F1::new(*e)).collect();
-    let mut b1: Vec<F1> = b.iter().map(|e| F1::new(*e)).collect();
     let res1 = single_convolution(&mut a1, &mut b1);
-    let mut res: Vec<u64> = vec![];
-    for i in 0..res0.len() {
+    let mut ans = 0;
+    let mut m = m;
+    for i in (0..res0.len()).rev() {
         let mut mr = vec![(1224736769u64, res0[i].0), (998244353u64, res1[i].0)];
         let v = garner(&mut mr, std::u64::MAX);
-        res.push(v);
+        if m <= v {
+            ans += m * i as u64;
+            break;
+        }
+        ans += v * i as u64;
+        m -= v;
     }
-    res
+    println!("{:?}", ans);
 }
