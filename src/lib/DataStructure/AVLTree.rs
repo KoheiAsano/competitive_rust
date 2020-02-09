@@ -37,6 +37,18 @@ impl<T: PartialEq + PartialOrd + Clone> BST<T> {
         }
     }
 
+    fn bias(&self) -> isize {
+        if let (Some(l), Some(r)) = (&self.l, &self.r) {
+            l.h - r.h
+        } else if let Some(l) = &self.l {
+            l.h + 1
+        } else if let Some(r) = &self.r {
+            -r.h - 1
+        } else {
+            0
+        }
+    }
+
     fn fixHeight(&mut self) {
         if let (Some(l), Some(r)) = (&self.l, &self.r) {
             self.h = std::cmp::max(l.h, r.h) + 1
@@ -49,41 +61,58 @@ impl<T: PartialEq + PartialOrd + Clone> BST<T> {
         }
     }
 
-    // 親の左をもぐ
-    // 左の右をもぐ
-    // 左を親にする
-    // 元親の左に元左の右を
-    // 元左の右に元親を
+    // 1. 親の左部分木をもぐ
+    // 2. もいだ左部分木の右部分木をもぐ
+    // 3. もいだ左部分木を親にする
+    // 4. 元親の左部分木に元左の右を接ぐ
+    // 5. 元左部分木(新親)の右に元親を接ぐ
     fn rotateR(&mut self) {
-        // 親の左をもぐ
-        // これは次に根になる左部分木
-        let mut lst: Box<BST<T>> = self.l.take().unwrap();
-        // 左の右をもぐ
-        // これは元の左部分木になる木(optionBox)
-        let lst_rst: Option<Box<BST<T>>> = lst.r.take();
-        // 左を親にする
-        std::mem::swap(&mut *self, &mut lst);
-        // 元の親の左に元左の右を
-        lst.l = lst_rst;
-        // 元左の右に元親を
-        lst.fixHeight();
-        self.r = Some(lst);
-        self.fixHeight();
+        // 左の子がなければ右回転できない
+        if self.l.is_some() {
+            // 1. 親の左部分木をもぐ
+            let mut lst: Box<BST<T>> = self.l.take().unwrap();
+            // 2. もいだ左部分木の右部分木をもぐ
+            let lst_rst: Option<Box<BST<T>>> = if lst.r.is_some() { lst.r.take() } else { None };
+            // 3. もいだ左部分木を親にする
+            std::mem::swap(&mut *self, &mut lst);
+            // 4. 元親の左部分木に元左の右を接ぐ
+            lst.l = lst_rst;
+            lst.fixHeight();
+            // 5. 元左部分木(新親)の右に元親を接ぐ
+            self.r = Some(lst);
+            self.fixHeight();
+        } else {
+            ()
+        }
     }
 
     fn rotateL(&mut self) {
-        let mut rst: Box<BST<T>> = self.r.take().unwrap();
-        let rst_lst: Option<Box<BST<T>>> = rst.l.take();
-        std::mem::swap(&mut *self, &mut rst);
-        rst.r = rst_lst;
-        rst.fixHeight();
-        self.l = Some(rst);
-        self.fixHeight();
+        if self.r.is_some() {
+            let mut rst: Box<BST<T>> = self.r.take().unwrap();
+            let rst_lst: Option<Box<BST<T>>> = if rst.l.is_some() { rst.l.take() } else { None };
+            std::mem::swap(&mut *self, &mut rst);
+            rst.r = rst_lst;
+            rst.fixHeight();
+            self.l = Some(rst);
+            self.fixHeight();
+        } else {
+            ()
+        }
     }
 
-    fn rotateLR(&mut self) {}
+    fn rotateLR(&mut self) {
+        if let Some(l) = &mut self.l {
+            l.rotateL();
+            self.rotateR();
+        }
+    }
 
-    fn rotateRL(&mut self) {}
+    fn rotateRL(&mut self) {
+        if let Some(r) = &mut self.r {
+            r.rotateR();
+            self.rotateL();
+        }
+    }
 
     fn find(&self, n: &T) -> bool {
         if let Some(v) = &self.v {
@@ -145,17 +174,51 @@ impl<T: PartialEq + PartialOrd + Clone> BST<T> {
                     None => self.r = Some(BST::new_node(n)),
                 }
                 self.fixHeight();
+                if self.bias() == -2 {
+                    match &mut self.r {
+                        Some(r) => {
+                            if r.bias() == -1 {
+                                self.rotateL();
+                            } else {
+                                self.rotateRL();
+                            }
+                        }
+                        None => unreachable!(),
+                    }
+                }
             } else {
                 match &mut self.l {
                     Some(l) => l.insert(n),
                     None => self.l = Some(BST::new_node(n)),
                 }
                 self.fixHeight();
+                if self.bias() == 2 {
+                    match &mut self.l {
+                        Some(l) => {
+                            if l.bias() == 1 {
+                                self.rotateR();
+                            } else {
+                                self.rotateLR();
+                            }
+                        }
+                        None => unreachable!(),
+                    }
+                }
             }
         } else {
             self.v = Some(n);
         }
     }
+}
+
+#[test]
+fn check_insert() {
+    let mut bst = BST::new();
+    bst.insert(1);
+    bst.insert(2);
+    bst.insert(3);
+    println!("{:?}", bst.bias());
+    println!("{:?}", bst);
 }
 
 #[test]
