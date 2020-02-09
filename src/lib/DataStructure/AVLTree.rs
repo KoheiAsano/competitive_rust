@@ -37,7 +37,48 @@ impl<T: PartialEq + PartialOrd + Clone> BST<T> {
         }
     }
 
-    fn fixHeight(&mut self) {}
+    fn fixHeight(&mut self) {
+        if let (Some(l), Some(r)) = (&self.l, &self.r) {
+            self.h = std::cmp::max(l.h, r.h) + 1
+        } else if let Some(l) = &self.l {
+            self.h = l.h + 1
+        } else if let Some(r) = &self.r {
+            self.h = r.h + 1
+        } else {
+            self.h = 0
+        }
+    }
+    // 親の左をもぐ
+    // 左の右をもぐ
+    // 左を親にする
+    // 元親の左に元左の右を
+    // 元左の右に元親を
+    fn rotateR(&mut self) {
+        // 親の左をもぐ
+        // これは次に根になる左部分木
+        let mut lst: Box<BST<T>> = self.l.take().unwrap();
+        // 左の右をもぐ
+        // これは元の左部分木になる木(optionBox)
+        let lst_rst: Option<Box<BST<T>>> = lst.r.take();
+        // 左を親にする
+        std::mem::swap(&mut *self, &mut lst);
+        // 元の親の左に元左の右を
+        lst.l = lst_rst;
+        // 元左の右に元親を
+        self.r = Some(lst)
+    }
+
+    fn rotateL(&mut self) {
+        let mut rst: Box<BST<T>> = self.r.take().unwrap();
+        let rst_lst: Option<Box<BST<T>>> = rst.l.take();
+        std::mem::swap(&mut *self, &mut rst);
+        rst.r = rst_lst;
+        self.l = Some(rst)
+    }
+
+    fn rotateLR(&mut self) {}
+
+    fn rotateRL(&mut self) {}
 
     fn find(&self, n: &T) -> bool {
         if let Some(v) = &self.v {
@@ -118,6 +159,22 @@ impl<T: PartialEq + PartialOrd + Clone> BST<T> {
             self.v = Some(n);
         }
     }
+}
+
+#[test]
+fn check_rotate() {
+    let mut bst = BST::new();
+    bst.insert(7);
+    bst.insert(3);
+    bst.insert(8);
+    bst.insert(5);
+    bst.insert(4);
+    bst.insert(6);
+    println!("{:?}", bst);
+    bst.rotateR();
+    println!("{:?}", bst);
+    bst.rotateL();
+    println!("{:?}", bst);
 }
 
 #[test]
