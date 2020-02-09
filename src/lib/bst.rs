@@ -14,9 +14,9 @@ impl<T: PartialEq + PartialOrd + Clone> BST<T> {
         }
     }
 
-    fn new_node(n: &T) -> Box<BST<T>> {
+    fn new_node(n: T) -> Box<BST<T>> {
         Box::new(BST {
-            v: Some(n.clone()),
+            v: Some(n),
             l: None,
             r: None,
         })
@@ -86,9 +86,9 @@ impl<T: PartialEq + PartialOrd + Clone> BST<T> {
         }
     }
 
-    fn insert(&mut self, n: &T) {
+    fn insert(&mut self, n: T) {
         if let Some(v) = &self.v {
-            if *v < *n {
+            if *v < n {
                 match &mut self.r {
                     Some(r) => r.insert(n),
                     None => self.r = Some(BST::new_node(n)),
@@ -100,7 +100,7 @@ impl<T: PartialEq + PartialOrd + Clone> BST<T> {
                 }
             }
         } else {
-            self.v = Some(n.clone());
+            self.v = Some(n);
         }
     }
 }
@@ -108,21 +108,21 @@ impl<T: PartialEq + PartialOrd + Clone> BST<T> {
 #[test]
 fn check_int() {
     let mut bst = BST::new();
-    bst.insert(&5);
-    bst.insert(&(-5));
-    bst.insert(&(-10));
-    bst.insert(&(12));
+    bst.insert(5);
+    bst.insert(-5);
+    bst.insert(-10);
+    bst.insert(12);
     assert_eq!(bst.find(&(-5)), true);
     assert_eq!(bst.find(&(-7)), false);
 }
 #[test]
 fn check_string() {
     let mut bst = BST::new();
-    bst.insert(&String::from("l"));
-    bst.insert(&String::from("a"));
-    bst.insert(&String::from("y"));
-    bst.insert(&String::from("x"));
-    bst.insert(&String::from("z"));
+    bst.insert(String::from("l"));
+    bst.insert(String::from("a"));
+    bst.insert(String::from("y"));
+    bst.insert(String::from("x"));
+    bst.insert(String::from("z"));
     assert_eq!(bst.find(&String::from("z")), true);
     assert_eq!(bst.find(&String::from("d")), false);
     bst.delete(&String::from("l"));
