@@ -1,10 +1,3 @@
-/*
-Rustの公式のDijkstra
-*/
-
-use std::cmp::Ordering;
-use std::collections::BinaryHeap;
-use std::usize;
 
 #[derive(Copy, Clone, Eq, PartialEq)]
 struct State {
@@ -13,7 +6,7 @@ struct State {
 }
 
 impl Ord for State {
-    fn cmp(&self, other: &State) -> Ordering {
+    fn cmp(&self, other: &State) -> std::cmp::Ordering {
         other
             .cost
             .cmp(&self.cost)
@@ -22,21 +15,21 @@ impl Ord for State {
 }
 
 impl PartialOrd for State {
-    fn partial_cmp(&self, other: &State) -> Option<Ordering> {
+    fn partial_cmp(&self, other: &State) -> Option<std::cmp::Ordering> {
         Some(self.cmp(other))
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 struct Edge {
     node: usize,
     cost: usize,
 }
 
-fn shortest_path(adj_ist: &Vec<Vec<Edge>>, start: usize, goal: usize) -> Option<usize> {
-    let mut dist: Vec<_> = (0..adj_ist.len()).map(|_| usize::MAX).collect();
+fn shortest_path(adjl: &Vec<Vec<Edge>>, start: usize, goal: usize) -> Option<usize> {
+    let mut dist: Vec<_> = (0..adjl.len()).map(|_| std::usize::MAX).collect();
 
-    let mut heap = BinaryHeap::new();
+    let mut heap = std::collections::BinaryHeap::new();
 
     dist[start] = 0;
     heap.push(State {
@@ -53,7 +46,7 @@ fn shortest_path(adj_ist: &Vec<Vec<Edge>>, start: usize, goal: usize) -> Option<
             continue;
         }
 
-        for edge in &adj_ist[position] {
+        for edge in &adjl[position] {
             let next = State {
                 cost: cost + edge.cost,
                 position: edge.node,
@@ -70,25 +63,18 @@ fn shortest_path(adj_ist: &Vec<Vec<Edge>>, start: usize, goal: usize) -> Option<
 }
 
 fn main() {
-    let graph = vec![
-        vec![Edge { node: 2, cost: 10 }, Edge { node: 1, cost: 1 }],
-        // Node 1
-        vec![Edge { node: 3, cost: 2 }],
-        // Node 2
-        vec![
-            Edge { node: 1, cost: 1 },
-            Edge { node: 3, cost: 3 },
-            Edge { node: 4, cost: 1 },
-        ],
-        // Node 3
-        vec![Edge { node: 0, cost: 7 }, Edge { node: 4, cost: 2 }],
-        // Node 4
-        vec![],
-    ];
-
-    assert_eq!(shortest_path(&graph, 0, 1), Some(1));
-    assert_eq!(shortest_path(&graph, 0, 3), Some(3));
-    assert_eq!(shortest_path(&graph, 3, 0), Some(7));
-    assert_eq!(shortest_path(&graph, 0, 4), Some(5));
-    assert_eq!(shortest_path(&graph, 4, 0), None);
-}
+    let (v, e, start): (usize, usize, usize) = (read(), read(), read());
+    let mut adjl = vec![vec![]; v];
+    for _ in 0..e {
+        let (from, to, cost): (usize, usize, usize) = (read(), read(), read());
+        adjl[from].push(Edge {
+            node: to,
+            cost: cost,
+        });
+    }
+    for i in 0..v {
+        match shortest_path(&adjl, start, i) {
+            Some(d) => println!("{}", d),
+            None => println!("INF"),
+        }
+    }
