@@ -1,3 +1,22 @@
+fn lower_bound<T: std::cmp::Ord>(arr: &Vec<T>, b: T) -> usize {
+    let (mut lt, mut ge) = (0, arr.len());
+    // lt=-1にすると型強制しなきゃなのでここで確かめる
+    if arr[lt] >= b {
+        return 0;
+    }
+    while lt + 1 < ge {
+        let m = (lt + ge) / 2;
+        if arr[m] < b {
+            lt = m;
+        } else if arr[m] > b {
+            ge = m;
+        } else {
+            return m;
+        }
+    }
+    ge
+}
+
 fn is_ok(u: usize) -> bool {
     if u > 6 {
         false
