@@ -13,10 +13,7 @@ struct UnionFind {
 }
 impl UnionFind {
     fn new(n: usize) -> Self {
-        let mut table = vec![0; n];
-        for i in 0..n {
-            table[i] = -1;
-        }
+        let table = vec![-1; n];
         UnionFind {
             table: table,
             number: n,
@@ -25,12 +22,11 @@ impl UnionFind {
 }
 impl UnionFind {
     fn root(&mut self, x: usize) -> usize {
-        // 負ならそれが親
-        // 他のを指しているならたどる
-        if self.table[x] < 0 {
+        let par = self.table[x];
+        if par < 0 {
             x
         } else {
-            let tmp = self.root(self.table[x] as usize);
+            let tmp = self.root(par as usize);
             self.table[x] = tmp as i64;
             tmp
         }
@@ -112,7 +108,6 @@ mod tests {
         assert_eq!(uf.size(6), 2);
         assert_eq!(uf.size(9), 3);
     }
-
 }
 
 fn main() {}
