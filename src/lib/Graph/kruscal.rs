@@ -87,7 +87,7 @@ mod Kruscal {
         edges.dedup();
         let mut res_tree: Vec<Edge> = vec![];
         let mut res: i64 = 0;
-        // till graph is connected
+        // till all edges are checked
         for e in edges {
             if !uf.same(e.from, e.to) {
                 uf.union(e.from, e.to);
