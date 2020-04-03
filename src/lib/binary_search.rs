@@ -1,3 +1,4 @@
+// a[i] >= b を満たす最小のiを返す,
 fn lower_bound<T: std::cmp::Ord>(arr: &Vec<T>, b: T) -> usize {
     let (mut lt, mut ge) = (0, arr.len());
     // lt=-1にすると型強制しなきゃなのでここで確かめる
@@ -8,10 +9,8 @@ fn lower_bound<T: std::cmp::Ord>(arr: &Vec<T>, b: T) -> usize {
         let m = (lt + ge) / 2;
         if arr[m] < b {
             lt = m;
-        } else if arr[m] > b {
+        } else if arr[m] >= b {
             ge = m;
-        } else {
-            return m;
         }
     }
     ge
