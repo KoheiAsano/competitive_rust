@@ -10,8 +10,6 @@ let c = Comb::fact_new();
 const MAXN: usize = 10010;
 const MOD: usize = 1000000007;
 
-
-
 struct Comb {
     fact: [usize; MAXN],
     finv: [usize; MAXN],
@@ -23,9 +21,9 @@ impl Comb {
     fn p_mod(base: usize, exp: usize) -> usize {
         if exp != 0 {
             if (exp & 1) == 1 {
-                p_mod(base * base % MOD, exp / 2, MOD) * (base) % MOD
+                Comb::p_mod(base * base % MOD, exp / 2) * (base) % MOD
             } else {
-                p_mod(base * base % MOD, exp / 2, MOD)
+                Comb::p_mod(base * base % MOD, exp / 2)
             }
         } else {
             1
@@ -51,13 +49,17 @@ impl Comb {
     fn nPr(&self, n: usize, r: usize) -> usize {
         if n < r || r == 0 {
             0
+        } else if r == 0 {
+            1
         } else {
             self.fact[n] * self.finv[n - r] % MOD
         }
     }
     fn nCr(&self, n: usize, r: usize) -> usize {
-        if n < r || r == 0 {
+        if n < r {
             0
+        } else if r == 0 {
+            1
         } else {
             self.fact[n] * self.finv[r] % MOD * self.finv[n - r] % MOD
         }

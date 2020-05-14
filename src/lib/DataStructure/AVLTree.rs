@@ -1,21 +1,12 @@
 #[derive(Debug, Clone)]
-struct BST<T: PartialEq + PartialOrd + Clone> {
+pub struct BST<T: PartialEq + PartialOrd + Clone + std::fmt::Debug> {
     h: isize,
     v: Option<T>,
     l: Option<Box<BST<T>>>,
     r: Option<Box<BST<T>>>,
 }
 
-impl<T: PartialEq + PartialOrd + Clone> BST<T> {
-    fn new() -> BST<T> {
-        BST {
-            h: 0,
-            v: None,
-            l: None,
-            r: None,
-        }
-    }
-
+impl<T: PartialEq + PartialOrd + Clone + std::fmt::Debug> BST<T> {
     fn new_node(n: T) -> Box<BST<T>> {
         Box::new(BST {
             h: 0,
@@ -26,17 +17,22 @@ impl<T: PartialEq + PartialOrd + Clone> BST<T> {
     }
     // cloneする？
     fn min(&self) -> Option<T> {
-        if let Some(l) = &self.l {
-            l.min()
-        } else {
-            if let Some(v) = &self.v {
-                Some((*v).clone())
+        if let Some(v) = &self.v {
+            if let Some(l) = &self.l {
+                if let Some(_v) = &l.v {
+                    l.min()
+                } else {
+                    Some((*v).clone())
+                }
             } else {
-                None
+                Some((*v).clone())
             }
+        } else {
+            unreachable!();
         }
     }
 
+    // 左部分木の高さ-右部分木の高さ
     fn bias(&self) -> isize {
         if let (Some(l), Some(r)) = (&self.l, &self.r) {
             l.h - r.h
@@ -49,7 +45,7 @@ impl<T: PartialEq + PartialOrd + Clone> BST<T> {
         }
     }
 
-    fn fixHeight(&mut self) {
+    fn fix_height(&mut self) {
         if let (Some(l), Some(r)) = (&self.l, &self.r) {
             self.h = std::cmp::max(l.h, r.h) + 1
         } else if let Some(l) = &self.l {
@@ -66,7 +62,7 @@ impl<T: PartialEq + PartialOrd + Clone> BST<T> {
     // 3. もいだ左部分木を親にする
     // 4. 元親の左部分木に元左の右を接ぐ
     // 5. 元左部分木(新親)の右に元親を接ぐ
-    fn rotateR(&mut self) {
+    fn rotate_right(&mut self) {
         // 左の子がなければ右回転できない
         if self.l.is_some() {
             // 1. 親の左部分木をもぐ
@@ -77,44 +73,53 @@ impl<T: PartialEq + PartialOrd + Clone> BST<T> {
             std::mem::swap(&mut *self, &mut lst);
             // 4. 元親の左部分木に元左の右を接ぐ
             lst.l = lst_rst;
-            lst.fixHeight();
+            lst.fix_height();
             // 5. 元左部分木(新親)の右に元親を接ぐ
             self.r = Some(lst);
-            self.fixHeight();
+            self.fix_height();
         } else {
             ()
         }
     }
 
-    fn rotateL(&mut self) {
+    fn rotate_left(&mut self) {
         if self.r.is_some() {
             let mut rst: Box<BST<T>> = self.r.take().unwrap();
             let rst_lst: Option<Box<BST<T>>> = if rst.l.is_some() { rst.l.take() } else { None };
             std::mem::swap(&mut *self, &mut rst);
             rst.r = rst_lst;
-            rst.fixHeight();
+            rst.fix_height();
             self.l = Some(rst);
-            self.fixHeight();
+            self.fix_height();
         } else {
             ()
         }
     }
 
-    fn rotateLR(&mut self) {
+    fn rotate_left_right(&mut self) {
         if let Some(l) = &mut self.l {
-            l.rotateL();
-            self.rotateR();
+            l.rotate_left();
+            self.rotate_right();
         }
     }
 
-    fn rotateRL(&mut self) {
+    fn rotate_right_left(&mut self) {
         if let Some(r) = &mut self.r {
-            r.rotateR();
-            self.rotateL();
+            r.rotate_right();
+            self.rotate_left();
         }
     }
 
-    fn find(&self, n: &T) -> bool {
+    pub fn new() -> BST<T> {
+        BST {
+            h: 0,
+            v: None,
+            l: None,
+            r: None,
+        }
+    }
+
+    pub fn find(&self, n: &T) -> bool {
         if let Some(v) = &self.v {
             if *v == *n {
                 true
@@ -134,12 +139,12 @@ impl<T: PartialEq + PartialOrd + Clone> BST<T> {
         }
     }
     // 存在しない要素に対してと空の木に対してはなにもしない
-    fn delete(&mut self, n: &T) {
+    pub fn delete(&mut self, n: &T) {
         if let Some(v) = &self.v {
             if *v == *n {
                 if let (Some(_l), Some(r)) = (&mut self.l, &mut self.r) {
                     let m = r.min();
-                    self.delete(m.as_ref().unwrap());
+                    r.delete(m.as_ref().unwrap());
                     self.v = m;
                 } else if self.l.is_some() {
                     let l = self.l.take().unwrap();
@@ -148,17 +153,41 @@ impl<T: PartialEq + PartialOrd + Clone> BST<T> {
                     let r = self.r.take().unwrap();
                     *self = *r;
                 } else {
-                    ()
+                    self.v = None;
                 }
             } else if *v < *n {
                 match &mut self.r {
                     Some(r) => r.delete(n),
                     None => (),
                 }
+                if self.bias() == 2 {
+                    match &mut self.l {
+                        Some(l) => {
+                            if l.bias() == -1 {
+                                self.rotate_right_left();
+                            } else {
+                                self.rotate_right();
+                            }
+                        }
+                        None => unreachable!(),
+                    }
+                }
             } else {
                 match &mut self.l {
                     Some(l) => l.delete(n),
                     None => (),
+                }
+                if self.bias() == 2 {
+                    match &mut self.r {
+                        Some(r) => {
+                            if r.bias() == 1 {
+                                self.rotate_left_right();
+                            } else {
+                                self.rotate_left();
+                            }
+                        }
+                        None => unreachable!(),
+                    }
                 }
             }
         } else {
@@ -166,21 +195,21 @@ impl<T: PartialEq + PartialOrd + Clone> BST<T> {
         }
     }
 
-    fn insert(&mut self, n: T) {
+    pub fn insert(&mut self, n: T) {
         if let Some(v) = &self.v {
             if *v < n {
                 match &mut self.r {
                     Some(r) => r.insert(n),
                     None => self.r = Some(BST::new_node(n)),
                 }
-                self.fixHeight();
+                self.fix_height();
                 if self.bias() == -2 {
-                    match &mut self.r {
+                    match &self.r {
                         Some(r) => {
                             if r.bias() == -1 {
-                                self.rotateL();
+                                self.rotate_left();
                             } else {
-                                self.rotateRL();
+                                self.rotate_right_left();
                             }
                         }
                         None => unreachable!(),
@@ -191,14 +220,14 @@ impl<T: PartialEq + PartialOrd + Clone> BST<T> {
                     Some(l) => l.insert(n),
                     None => self.l = Some(BST::new_node(n)),
                 }
-                self.fixHeight();
+                self.fix_height();
                 if self.bias() == 2 {
-                    match &mut self.l {
+                    match &self.l {
                         Some(l) => {
                             if l.bias() == 1 {
-                                self.rotateR();
+                                self.rotate_right();
                             } else {
-                                self.rotateLR();
+                                self.rotate_left_right();
                             }
                         }
                         None => unreachable!(),
@@ -217,8 +246,20 @@ fn check_insert() {
     bst.insert(1);
     bst.insert(2);
     bst.insert(3);
-    println!("{:?}", bst.bias());
     println!("{:?}", bst);
+    bst.insert(4);
+    println!("{:?}", bst);
+    bst.insert(5);
+    println!("{:?}", bst);
+    bst.insert(6);
+    println!("{:?}", bst);
+    let x = 1;
+    let y = String::new();
+    let _yp = String::new();
+    match (x, &y) {
+        (1, _yp) => println!("{:?}", (x, y)),
+        _ => println!("{:?}", "NO"),
+    }
 }
 
 #[test]

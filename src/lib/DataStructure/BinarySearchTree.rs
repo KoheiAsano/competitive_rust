@@ -68,6 +68,7 @@ impl<T: PartialEq + PartialOrd + Clone> BST<T> {
                     let r = self.r.take().unwrap();
                     *self = *r;
                 } else {
+                    // ここどうすんねん
                     ()
                 }
             } else if *v < *n {
