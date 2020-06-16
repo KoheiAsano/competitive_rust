@@ -1,134 +1,105 @@
 #[derive(Debug, Clone)]
-struct BST<T: PartialEq + PartialOrd + Clone> {
-    v: Option<T>,
-    l: Option<Box<BST<T>>>,
-    r: Option<Box<BST<T>>>,
+enum MBST {
+    Lf,
+    Br {
+        l: Box<MBST>,
+        v: usize,
+        r: Box<MBST>,
+    },
 }
 
-impl<T: PartialEq + PartialOrd + Clone> BST<T> {
-    fn new() -> BST<T> {
-        BST {
-            v: None,
-            l: None,
-            r: None,
-        }
-    }
-
-    fn new_node(n: T) -> Box<BST<T>> {
-        Box::new(BST {
-            v: Some(n),
-            l: None,
-            r: None,
-        })
-    }
-    // cloneする？
-    fn min(&self) -> Option<T> {
-        if let Some(l) = &self.l {
-            l.min()
-        } else {
-            if let Some(v) = &self.v {
-                Some((*v).clone())
-            } else {
-                None
+impl MBST {
+    fn insert(&mut self, k: usize) {
+        match self {
+            MBST::Lf => {
+                *self = MBST::Br {
+                    l: Box::new(MBST::Lf),
+                    v: k,
+                    r: Box::new(MBST::Lf),
+                }
+            }
+            MBST::Br { l, v, r } => {
+                if *v <= k {
+                    r.insert(k);
+                } else if *v > k {
+                    l.insert(k)
+                }
             }
         }
     }
 
-    fn find(&self, n: &T) -> bool {
-        if let Some(v) = &self.v {
-            if *v == *n {
-                true
-            } else if *v < *n {
-                match &self.r {
-                    Some(r) => r.find(n),
-                    None => false,
-                }
-            } else {
-                match &self.l {
-                    Some(l) => l.find(n),
-                    None => false,
-                }
-            }
-        } else {
-            false
+    fn max(&self) -> usize {
+        match self {
+            MBST::Lf => 0,
+            MBST::Br { v, r, .. } => match **r {
+                MBST::Lf => *v,
+                MBST::Br { .. } => r.max(),
+            },
         }
     }
-    // 存在しない要素に対してと空の木に対してはなにもしない
-    fn delete(&mut self, n: &T) {
-        if let Some(v) = &self.v {
-            if *v == *n {
-                if let (Some(_l), Some(r)) = (&mut self.l, &mut self.r) {
-                    let m = r.min();
-                    self.delete(m.as_ref().unwrap());
-                    self.v = m;
-                } else if self.l.is_some() {
-                    let l = self.l.take().unwrap();
-                    *self = *l;
-                } else if self.r.is_some() {
-                    let r = self.r.take().unwrap();
-                    *self = *r;
+
+    fn min(&self) -> usize {
+        match self {
+            MBST::Lf => std::usize::MAX,
+            MBST::Br { l, v, .. } => match **l {
+                MBST::Lf => *v,
+                MBST::Br { .. } => l.min(),
+            },
+        }
+    }
+
+    fn remove(&mut self, k: usize) {
+        match self {
+            MBST::Lf => (),
+            MBST::Br { l, v, r } => {
+                if *v == k {
+                    match **l {
+                        MBST::Lf => match **r {
+                            MBST::Lf => *self = MBST::Lf,
+                            MBST::Br { .. } => {
+                                let rt = (**r).clone();
+                                **r = MBST::Lf;
+                                *self = rt;
+                            }
+                        },
+                        MBST::Br { .. } => match **r {
+                            MBST::Lf => {
+                                let lt = (**l).clone();
+                                **l = MBST::Lf;
+                                *self = lt;
+                            }
+                            MBST::Br { .. } => {
+                                let lm = l.max();
+                                *v = lm;
+                                l.remove(lm);
+                            }
+                        },
+                    }
+                } else if *v < k {
+                    r.remove(k)
                 } else {
-                    // ここどうすんねん
-                    ()
-                }
-            } else if *v < *n {
-                match &mut self.r {
-                    Some(r) => r.delete(n),
-                    None => (),
-                }
-            } else {
-                match &mut self.l {
-                    Some(l) => l.delete(n),
-                    None => (),
+                    l.remove(k)
                 }
             }
-        } else {
-            ()
-        }
-    }
-
-    fn insert(&mut self, n: T) {
-        if let Some(v) = &self.v {
-            if *v < n {
-                match &mut self.r {
-                    Some(r) => r.insert(n),
-                    None => self.r = Some(BST::new_node(n)),
-                }
-            } else {
-                match &mut self.l {
-                    Some(l) => l.insert(n),
-                    None => self.l = Some(BST::new_node(n)),
-                }
-            }
-        } else {
-            self.v = Some(n);
         }
     }
 }
 
 #[test]
-fn check_int() {
-    let mut bst = BST::new();
-    bst.insert(5);
-    bst.insert(-5);
-    bst.insert(-10);
-    bst.insert(12);
-    assert_eq!(bst.find(&(-5)), true);
-    assert_eq!(bst.find(&(-7)), false);
+fn mbst_test() {
+    let mut mbst = MBST::Lf;
+    mbst.insert(4);
+    mbst.insert(4);
+    mbst.insert(0);
+    mbst.insert(3);
+    mbst.insert(1);
+    println!("{:?}", mbst);
+    println!("{:?}", mbst.max());
+    println!("{:?}", mbst.min());
+    mbst.remove(0);
+    mbst.remove(4);
+    println!("{:?}", mbst.min());
+    println!("{:?}", mbst.max());
+    mbst.remove(4);
+    println!("{:?}", mbst.max());
 }
-#[test]
-fn check_string() {
-    let mut bst = BST::new();
-    bst.insert(String::from("l"));
-    bst.insert(String::from("a"));
-    bst.insert(String::from("y"));
-    bst.insert(String::from("x"));
-    bst.insert(String::from("z"));
-    assert_eq!(bst.find(&String::from("z")), true);
-    assert_eq!(bst.find(&String::from("d")), false);
-    bst.delete(&String::from("l"));
-    assert_eq!(bst.find(&String::from("l")), false);
-    assert_eq!(bst.find(&String::from("x")), true);
-}
-
-fn main() {}
