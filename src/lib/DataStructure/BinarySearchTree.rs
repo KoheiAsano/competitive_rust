@@ -83,6 +83,43 @@ impl MBST {
             }
         }
     }
+    fn inorder_not_recursive(&self) {
+        let mut stack = vec![];
+        let mut cur = self;
+        loop {
+            loop {
+                match cur {
+                    MBST::Lf => break,
+                    MBST::Br { l, .. } => {
+                        stack.push(cur);
+                        cur = &l;
+                    }
+                }
+            }
+            match cur {
+                MBST::Lf => loop {
+                    if stack.len() == 0 {
+                        return;
+                    }
+                    cur = stack.pop().expect("wrong");
+                    match cur {
+                        MBST::Lf => unreachable!(),
+                        MBST::Br { v, r, .. } => {
+                            println!("{}", v);
+                            match **r {
+                                MBST::Lf => continue,
+                                MBST::Br { .. } => {
+                                    cur = r;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                },
+                MBST::Br { .. } => unreachable!(),
+            }
+        }
+    }
 }
 
 #[test]

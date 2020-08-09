@@ -1,64 +1,45 @@
-//
-/*
-中身はi64だけど外はusizeにしてみる
-*/
-
-// ============
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct UnionFind {
-    // size= 親なら負のサイズ、子なら親
-    // number= 集合の数
-    table: Vec<i64>,
-    number: usize,
+    table: Vec<i32>,
+    num: usize,
 }
 impl UnionFind {
-    fn new(n: usize) -> Self {
-        let table = vec![-1; n];
+    fn new(n: usize) -> UnionFind {
         UnionFind {
-            table: table,
-            number: n,
+            table: vec![-1; n],
+            num: n,
         }
     }
-}
-impl UnionFind {
     fn root(&mut self, x: usize) -> usize {
-        let par = self.table[x];
-        if par < 0 {
-            x
-        } else {
-            let tmp = self.root(par as usize);
-            self.table[x] = tmp as i64;
-            tmp
+        let mut r = x;
+        if self.table[x] >= 0 {
+            // borrowing が厳しいコンパイラ向け
+            let t = self.table[x] as usize;
+            r = self.root(t);
+            self.table[x] = r as i32;
         }
+        r
     }
-    fn same(&mut self, a: usize, b: usize) -> bool {
-        self.root(a) == self.root(b)
+    fn find(&mut self, x: usize, y: usize) -> bool {
+        self.root(x) == self.root(y)
     }
-
-    fn union(&mut self, a: usize, b: usize) -> () {
-        let a_root = self.root(a);
-        let b_root = self.root(b);
-
-        if a_root == b_root {
-            return ();
-        }
-        // 負なので小さい法が大きい. 大きい方につける
-        if self.table[a_root] > self.table[b_root] {
-            self.table[b_root] += self.table[a_root];
-            self.table[a_root] = b_root as i64;
-        } else {
-            self.table[a_root] += self.table[b_root];
-            self.table[b_root] = a_root as i64;
-        }
-        self.number -= 1;
-    }
-    // 親のサイズを返す
     fn size(&mut self, x: usize) -> usize {
-        let ri = self.root(x);
-        -self.table[ri] as usize
+        let r = self.root(x);
+        (-self.table[r]) as usize
     }
-    fn count(&self) -> usize {
-        self.number
+    fn union(&mut self, x: usize, y: usize) {
+        let xr = self.root(x);
+        let yr = self.root(y);
+        if xr != yr {
+            if self.size(xr) < self.size(yr) {
+                self.table[yr] += self.table[xr];
+                self.table[xr] = yr as i32;
+            } else {
+                self.table[xr] += self.table[yr];
+                self.table[yr] = xr as i32;
+            }
+            self.num -= 1;
+        }
     }
 }
 
